@@ -28,8 +28,9 @@ function createStringLiteralWithComment(key, value) {
 }
 
 async function processFile(file, i18nConfigFilePath, translations, exclude, prettierrc, ignoreFunctions) {
+  const ext = path.extname(file);
+  if (!['.ts', '.tsx', '.js', '.jsx'].includes(ext)) return;
   if (exclude.some(dir => file.includes(dir))) return;
-
   const content = await readFile(file);
   const ast = parser.parse(content, {
     sourceType: 'module',
@@ -93,18 +94,25 @@ function replaceTemplateLiteral(path, translations) {
   const rawValueParts = quasis.map(quasi => quasi.node.value.raw);
   const expressionNames = expressions.map(expr => expr.node.name);
 
-  const randomKey = generateShortKey();
-  const translatedString = rawValueParts.map((part, index) => {
-    const exprName = expressionNames[index];
-    return exprName ? `${part}{{${exprName}}}` : part;
-  }).join('');
+  if (rawValueParts.every(v => /[\u4e00-\u9fa5]/.test(v))) {
+    const randomKey = generateShortKey();
+    const translatedString = rawValueParts.map((part, index) => {
+      const exprName = expressionNames[index];
+      return exprName ? `${part}{{${exprName}}}` : part;
+    }).join('');
 
-  const objectExpression = t.objectExpression(
-    expressions.map(expr => t.objectProperty(t.identifier(expr.node.name), t.identifier(expr.node.name)))
-  );
-  const stringLiteral = createStringLiteralWithComment(randomKey, value);
-  path.replaceWith(t.callExpression(t.memberExpression(t.identifier('i18next'), t.identifier('t')), [stringLiteral, objectExpression]));
-  translations[randomKey] = translatedString;
+    const objectExpression = t.objectExpression(
+      expressions.map(expr => t.objectProperty(t.identifier(expr.node.name), t.identifier(expr.node.name), false, true))
+    );
+    const stringLiteral = createStringLiteralWithComment(randomKey, translatedString);
+    const arr = [stringLiteral]
+    if (expressionNames.length > 0) {
+      arr.push(objectExpression)
+    }
+
+    path.replaceWith(t.callExpression(t.memberExpression(t.identifier('i18next'), t.identifier('t')), arr));
+    translations[randomKey] = translatedString;
+  }
 }
 
 function replaceJSXText(path, translations) {
@@ -152,5 +160,6 @@ module.exports = async function () {
       await processFile(entryPath, i18nConfigFilePath, translations, exclude, prettierrc, ignoreFunctions);
     }
   }));
+
   await generateOutputFile(translations, output);
 };
