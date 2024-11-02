@@ -27,7 +27,8 @@ function createStringLiteralWithComment(key, value) {
   return stringLiteral;
 }
 
-async function processFile(file, i18nConfigFilePath, translations, exclude, prettierrc, ignoreFunctions) {
+async function processFile(file, translations, config) {
+  const { i18nConfigFilePath, exclude, prettierrc, ignoreFunctions } = config
   const ext = path.extname(file);
   if (!['.ts', '.tsx', '.js', '.jsx'].includes(ext)) return;
   if (exclude.some(dir => file.includes(dir))) return;
@@ -125,15 +126,16 @@ function replaceJSXText(path, translations) {
   }
 }
 
-async function traverseDirectory(dir, i18nConfigFilePath, translations, exclude, prettierrc, ignoreFunctions) {
+async function traverseDirectory(dir, translations, config) {
+  const { i18nConfigFilePath, exclude, prettierrc, ignoreFunctions } = config
   const files = await fs.readdir(dir);
   await Promise.all(files.map(async (file) => {
     const filePath = path.join(dir, file);
     const stats = await fs.stat(filePath);
     if (stats.isDirectory()) {
-      await traverseDirectory(filePath, i18nConfigFilePath, translations, exclude, prettierrc, ignoreFunctions);
+      await traverseDirectory(filePath, translations, config);
     } else {
-      await processFile(filePath, i18nConfigFilePath, translations, exclude, prettierrc, ignoreFunctions);
+      await processFile(filePath, translations, config);
     }
   }));
 }
@@ -155,9 +157,9 @@ module.exports = async function () {
     const entryPath = path.resolve(process.cwd(), entryItem);
     const stats = await fs.stat(entryPath);
     if (stats.isDirectory()) {
-      await traverseDirectory(entryPath, i18nConfigFilePath, translations, exclude, prettierrc, ignoreFunctions);
+      await traverseDirectory(entryPath, translations, config);
     } else {
-      await processFile(entryPath, i18nConfigFilePath, translations, exclude, prettierrc, ignoreFunctions);
+      await processFile(entryPath, translations, config);
     }
   }));
 
