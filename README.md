@@ -15,3 +15,30 @@
 ```bash
 npm install
 ```
+
+## 使用
+
+1. 创建 i18n-ast.config.js 配置文件：
+
+```
+const { resolve } = require('path')
+
+module.exports = {
+  entry: [resolve('src/pages/overview/dashboard')], // 必填
+  output: './output', // 必填 输出目录
+  i18nConfigFilePath: '@/i18n', // 必填 导入i18n配置(结合tsconfig中的paths定义)
+  prettierrc: require('./.prettierrc'),
+  exclude: ['resources', 'types', 'utils'], // 排除的文件
+  ignoreFunctions: ['sensorsUtil', 'sensorsFundClick'], // 需要忽略的函数调用
+
+  // WIP
+  locales: 'zh', // 默认语言(无须调整)
+  excelName: 'output.xlsx', // 输出excel名
+}
+```
+
+2. 在项目根目录运行：
+
+```
+node path/to/this/script.js
+```
