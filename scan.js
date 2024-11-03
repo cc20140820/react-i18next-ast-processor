@@ -27,15 +27,15 @@ function createStringLiteralWithComment(key, value) {
   return stringLiteral;
 }
 
-const LOCAL_REGEX_MAP = new Map([
-  ['zh', /[\u4e00-\u9fa5]/],             // 中文字符
-  ['en', /[A-Za-z]/],                    // 英文字符
-  ['fr', /[A-Za-zÀ-ÖØ-öø-ÿ]/],           // 法文字符
-  ['es', /[A-Za-zÀ-ÖØ-öø-ÿ]/]            // 西班牙文字符
-]);
+const LOCAL_REGEX_MAP = {
+  zh: /[\u4e00-\u9fa5]/,
+  en: /[A-Za-z]/,
+  fr: /[A-Za-zÀ-ÖØ-öø-ÿœç]/i,
+  es: /[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/i
+}
 
 function shouldTranslate(value, locales) {
-  const regex = LOCAL_REGEX_MAP.get(locales);
+  const regex = LOCAL_REGEX_MAP[locales];
   if (regex) {
     return regex.test(value);
   }
@@ -66,15 +66,18 @@ async function processFile(file, translations, config) {
   }
 
   traverse(ast, {
-    CallExpression(path) {
+    ImportDeclaration: (path) => {
+      path.skip();
+    },
+    CallExpression: (path) => {
       const calleeName = path.get('callee').toString();
-      if (ignoreFunctions.includes(calleeName)) {
-        path.skip(); // 跳过这个函数调用
+      if (ignoreFunctions.includes(calleeName) || ['i18next.t', 'console.log'].includes(calleeName)) {
+        path.skip();
       }
     },
-    StringLiteral: path => replaceStringLiteral(path, translations),
-    TemplateLiteral: path => replaceTemplateLiteral(path, translations),
-    JSXText: path => replaceJSXText(path, translations),
+    StringLiteral: path => replaceStringLiteral(path, translations, locales),
+    TemplateLiteral: path => replaceTemplateLiteral(path, translations, locales),
+    JSXText: path => replaceJSXText(path, translations, locales),
   });
 
   const { code } = generator(ast, {
@@ -91,26 +94,30 @@ async function processFile(file, translations, config) {
 }
 
 
-function replaceStringLiteral(path, translations) {
+function replaceStringLiteral(path, translations, locales) {
   const value = path.node.value;
-  if (/[\u4e00-\u9fa5]/.test(value)) {
-    const randomKey = generateShortKey();
-    const stringLiteral = createStringLiteralWithComment(randomKey, value);
-    const newExpression = t.callExpression(t.memberExpression(t.identifier('i18next'), t.identifier('t')), [
-      stringLiteral,
-    ])
-    path.replaceWith(newExpression)
-    translations[randomKey] = value;
+  const parent = path.parent;
+  if (!shouldTranslate(value, locales)) return
+  const randomKey = generateShortKey();
+  const stringLiteral = createStringLiteralWithComment(randomKey, value);
+  let newExpression = t.callExpression(t.memberExpression(t.identifier('i18next'), t.identifier('t')), [
+    stringLiteral,
+  ])
+  if (t.isJSXAttribute(parent)) {
+    newExpression = t.jsxExpressionContainer(newExpression)
   }
+  path.replaceWith(newExpression)
+  translations[randomKey] = value;
 }
 
-function replaceTemplateLiteral(path, translations) {
+function replaceTemplateLiteral(path, translations, locales) {
   const quasis = path.get('quasis');
   const expressions = path.get('expressions');
   const rawValueParts = quasis.map(quasi => quasi.node.value.raw);
   const expressionNames = expressions.map(expr => expr.node.name);
+  const regex = LOCAL_REGEX_MAP[locales];
 
-  if (rawValueParts.every(v => /[\u4e00-\u9fa5]/.test(v))) {
+  if (rawValueParts.every(v => regex.test(v))) {
     const randomKey = generateShortKey();
     const translatedString = rawValueParts.map((part, index) => {
       const exprName = expressionNames[index];
@@ -125,20 +132,18 @@ function replaceTemplateLiteral(path, translations) {
     if (expressionNames.length > 0) {
       arr.push(objectExpression)
     }
-
     path.replaceWith(t.callExpression(t.memberExpression(t.identifier('i18next'), t.identifier('t')), arr));
     translations[randomKey] = translatedString;
   }
 }
 
-function replaceJSXText(path, translations) {
+function replaceJSXText(path, translations, locales) {
   const value = path.node.value.trim();
-  if (/[\u4e00-\u9fa5]/.test(value)) {
-    const randomKey = generateShortKey();
-    const stringLiteral = createStringLiteralWithComment(randomKey, value);
-    path.replaceWith(t.jsxExpressionContainer(t.callExpression(t.memberExpression(t.identifier('i18next'), t.identifier('t')), [stringLiteral])));
-    translations[randomKey] = value;
-  }
+  if (!shouldTranslate(value, locales)) return
+  const randomKey = generateShortKey();
+  const stringLiteral = createStringLiteralWithComment(randomKey, value);
+  path.replaceWith(t.jsxExpressionContainer(t.callExpression(t.memberExpression(t.identifier('i18next'), t.identifier('t')), [stringLiteral])));
+  translations[randomKey] = value;
 }
 
 async function traverseDirectory(dir, translations, config) {
