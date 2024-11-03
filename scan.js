@@ -27,8 +27,23 @@ function createStringLiteralWithComment(key, value) {
   return stringLiteral;
 }
 
+const LOCAL_REGEX_MAP = new Map([
+  ['zh', /[\u4e00-\u9fa5]/],             // 中文字符
+  ['en', /[A-Za-z]/],                    // 英文字符
+  ['fr', /[A-Za-zÀ-ÖØ-öø-ÿ]/],           // 法文字符
+  ['es', /[A-Za-zÀ-ÖØ-öø-ÿ]/]            // 西班牙文字符
+]);
+
+function shouldTranslate(value, locales) {
+  const regex = LOCAL_REGEX_MAP.get(locales);
+  if (regex) {
+    return regex.test(value);
+  }
+  return false;
+}
+
 async function processFile(file, translations, config) {
-  const { i18nConfigFilePath, exclude, prettierrc, ignoreFunctions } = config
+  const { i18nConfigFilePath, exclude, prettierrc, ignoreFunctions, locales = 'zh' } = config
   const ext = path.extname(file);
   if (!['.ts', '.tsx', '.js', '.jsx'].includes(ext)) return;
   if (exclude.some(dir => file.includes(dir))) return;
@@ -127,7 +142,6 @@ function replaceJSXText(path, translations) {
 }
 
 async function traverseDirectory(dir, translations, config) {
-  const { i18nConfigFilePath, exclude, prettierrc, ignoreFunctions } = config
   const files = await fs.readdir(dir);
   await Promise.all(files.map(async (file) => {
     const filePath = path.join(dir, file);
@@ -150,7 +164,7 @@ async function generateOutputFile(translations, outputDir) {
 module.exports = async function () {
   const configFilePath = path.resolve(process.cwd(), 'i18n-ast.config.js');
   const config = require(configFilePath);
-  const { entry, output, i18nConfigFilePath, exclude, prettierrc, ignoreFunctions } = config;
+  const { entry, output } = config;
   const translations = {};
 
   await Promise.all(entry.map(async (entryItem) => {
