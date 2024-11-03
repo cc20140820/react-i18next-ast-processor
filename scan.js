@@ -159,8 +159,8 @@ async function traverseDirectory(dir, translations, config) {
   }));
 }
 
-async function generateOutputFile(translations, outputDir) {
-  const outputFilePath = path.join(process.cwd(), outputDir, 'zh.js');
+async function generateOutputFile(translations, outputDir, locales) {
+  const outputFilePath = path.join(process.cwd(), outputDir, `${locales}.js`);
   const outputContent = `module.exports = ${JSON.stringify(translations, null, 2)};`;
   await fs.mkdir(path.dirname(outputFilePath), { recursive: true });
   await writeFile(outputFilePath, outputContent);
@@ -169,7 +169,7 @@ async function generateOutputFile(translations, outputDir) {
 module.exports = async function () {
   const configFilePath = path.resolve(process.cwd(), 'i18n-ast.config.js');
   const config = require(configFilePath);
-  const { entry, output } = config;
+  const { entry, output, locales } = config;
   const translations = {};
 
   await Promise.all(entry.map(async (entryItem) => {
@@ -182,5 +182,5 @@ module.exports = async function () {
     }
   }));
 
-  await generateOutputFile(translations, output);
+  await generateOutputFile(translations, output, locales);
 };
