@@ -19,9 +19,9 @@ function getDate(timestamp) {
     return `${year}-${month}-${day}`
 }
 
-function getTranslationApiParams(textArr, config) {
-    const { SECRET_ID, SECRET_KEY, PROJECT_ID } = config
 
+function getTranslationApiParams(source, target, sourceTextList, translator) {
+    const { SECRET_ID, SECRET_KEY, PROJECT_ID } = translator
     const host = 'tmt.tencentcloudapi.com'
     const service = 'tmt'
     const region = 'ap-shanghai'
@@ -30,10 +30,10 @@ function getTranslationApiParams(textArr, config) {
     const timestamp = parseInt(String(new Date().getTime() / 1000))
     const date = getDate(timestamp)
     const payload = JSON.stringify({
-        Source: 'zh',
-        Target: 'en',
+        Source: source,
+        Target: target,
         ProjectId: PROJECT_ID,
-        SourceTextList: textArr,
+        SourceTextList: sourceTextList,
     })
 
     // ************* 步骤 1：拼接规范请求串 *************
@@ -87,8 +87,5 @@ function getTranslationApiParams(textArr, config) {
 }
 
 module.exports = {
-    sha256,
-    getHash,
-    getDate,
     getTranslationApiParams
 }

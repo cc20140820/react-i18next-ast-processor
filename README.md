@@ -25,18 +25,42 @@ npm install
 const { resolve } = require('path')
 
 module.exports = {
-  entry: [resolve('src/pages/overview/dashboard')], // 必填
-  output: './output', // 必填 输出目录
-  i18nConfigFilePath: '@/i18n', // 必填 导入i18n配置(结合tsconfig中的paths定义)
-  prettierrc: require('./.prettierrc'),
-  exclude: ['resources', 'types', 'utils'], // 排除的文件
-  ignoreFunctions: ['sensorsUtil', 'sensorsFundClick'], // 需要忽略的函数调用
+  entry: [resolve('src/pages/overview/dashboard')], // 必填，入口文件或目录，可以是一个数组
+  output: './output', // 必填，生成文件的输出目录
+  locales: 'zh', // 必填，源语言，支持 'zh' (中文), 'en' (英语), 'fr' (法语), 'es' (西班牙语)
+  i18nConfigFilePath: '@/i18n', // 必填，i18n 配置的导入路径
+  targetLngs: ['zh-TW', 'en'], // 可选，指定要翻译成的目标语言数组
+  prettierrc: require('./.prettierrc'), // 可选，Prettier 配置文件的路径
+  exclude: [], // 可选，指定要排除的文件或目录，例如 ['types', 'utils']
+  ignoreFunctions: ['console.log'], // 可选，指定要忽略的函数调用，例如 ['console.log']
+  translator: {
+    SECRET_ID: 'YOUR_SECRET_ID', // 必填，翻译服务的 Secret ID
+    SECRET_KEY: 'YOUR_SECRET_KEY', // 必填，翻译服务的 Secret Key
+    PROJECT_ID: 'YOUR_PROJECT_ID', // 必填，翻译服务的项目 ID
+  },
 
-  // WIP
-  locales: 'zh', // 默认语言(无须调整)
-  excelName: 'output.xlsx', // 输出excel名
+  isModule: false, // 可选，是否启用模块化命名空间
 }
+
 ```
+
+### 配置说明
+
+以下是 `i18n-ast.config.js` 文件中的各个字段说明：
+
+- `entry`: (必填) 入口文件或目录，可以是一个字符串或字符串数组，指定需要处理的文件。
+- `output`: (必填) 生成文件的输出目录。
+- `locales`: (必填) 源语言，支持的值包括 'zh' (中文), 'en' (英语), 'fr' (法语), 'es' (西班牙语)。
+- `i18nConfigFilePath`: (必填) i18n 配置的导入路径。
+- `targetLngs`: (可选) 指定要翻译成的目标语言数组。
+- `prettierrc`: (可选) Prettier 配置文件的路径。
+- `exclude`: (可选) 指定要排除的文件或目录，例如 `['types', 'utils']`。
+- `ignoreFunctions`: (可选) 指定要忽略的函数调用，例如 `['console.log']`。
+- `translator`: (必填) 包含翻译服务的认证信息：
+  - `SECRET_ID`: 翻译服务的 Secret ID。
+  - `SECRET_KEY`: 翻译服务的 Secret Key。
+  - `PROJECT_ID`: 翻译服务的项目 ID。
+- `isModule`: (可选) 是否启用模块化命名空间。
 
 2. 在项目根目录运行：
 

@@ -7,7 +7,7 @@
     "i18n-scanner-cli": "./bin/index.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest pack.test.js"
   },
   "keywords": [],
   "author": "",
@@ -25,5 +25,8 @@
     "prettier": "^3.3.3",
     "uuid": "^11.0.2",
     "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
   }
 }

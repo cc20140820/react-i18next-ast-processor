@@ -8,8 +8,8 @@ const prettier = require('prettier');
 const t = require('@babel/types');
 
 // 生成短随机字符串，取 UUID 的前 8 位
-function generateShortKey() {
-  return 'prefix.' + uuidv4().replace(/-/g, '').slice(0, 8);
+function generateShortKey(prefix = 'prefix') {
+  return `${prefix}.${uuidv4().replace(/-/g, '').slice(0, 8)}`;
 }
 
 async function readFile(file) {
@@ -43,7 +43,7 @@ function shouldTranslate(value, locales) {
 }
 
 async function processFile(file, translations, config) {
-  const { i18nConfigFilePath, exclude, prettierrc, ignoreFunctions, locales = 'zh' } = config
+  const { i18nConfigFilePath, exclude = [], prettierrc, ignoreFunctions = [], locales = 'zh' } = config
   const ext = path.extname(file);
   if (!['.ts', '.tsx', '.js', '.jsx'].includes(ext)) return;
   if (exclude.some(dir => file.includes(dir))) return;
@@ -71,7 +71,7 @@ async function processFile(file, translations, config) {
     },
     CallExpression: (path) => {
       const calleeName = path.get('callee').toString();
-      if (ignoreFunctions.includes(calleeName) || ['i18next.t', 'console.log'].includes(calleeName)) {
+      if (ignoreFunctions.includes(calleeName) || ['i18next.t', 't', 'console.log'].includes(calleeName)) {
         path.skip();
       }
     },
