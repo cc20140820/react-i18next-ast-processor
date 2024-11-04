@@ -1,20 +1,20 @@
-# i18n AST Processor
+### i18n AST Processor
 
 这是一个用于扫描 JavaScript/TypeScript 文件并将字符串文本转换为国际化（i18n）调用的工具。它支持将中文字符串替换为 `i18next.t` 调用，并生成一个包含翻译键和中文的输出文件。
 
-## 功能
+#### 功能
 
 1. **扫描和处理文件**：自动识别 JavaScript/TypeScript 文件中的字符串，转换为 i18n 调用。
 2. **生成 Excel 文件**：将翻译结果输出为 Excel 格式，便于管理和查看。
 3. **机器翻译**：使用腾讯翻译 API 进行字符串翻译，并将翻译结果合并到原数据中。
 
-## 安装
+#### 安装
 
 ```bash
 npm i react-i18next-ast-processor
 ```
 
-## 使用
+#### 使用
 
 添加脚本运行
 
@@ -30,7 +30,7 @@ npm i react-i18next-ast-processor
 },
 ```
 
-### 配置文件
+#### 配置文件
 
 根目录下创建一个名为 `i18n-ast.config.js` 的配置文件，示例内容如下
 

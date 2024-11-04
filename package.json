@@ -1,6 +1,6 @@
 {
   "name": "react-i18next-ast-processor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "基于react-i18next，扫描指定文件目录，将文件中的文本替换为多语言格式。",
   "main": "index.js",
   "bin": {
