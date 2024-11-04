@@ -1,10 +1,10 @@
 {
-  "name": "react-i18next-scanner",
+  "name": "react-i18next-ast-processor",
   "version": "1.0.0",
   "description": "基于react-i18next，扫描指定文件目录，将文件中的文本替换为多语言格式。",
   "main": "index.js",
   "bin": {
-    "i18n-scanner-cli": "./bin/index.js"
+    "i18n-processor-cli": "./bin/index.js"
   },
   "scripts": {
     "test": "jest pack.test.js"
