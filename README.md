@@ -2,6 +2,65 @@
 
 这是一个用于扫描 JavaScript/TypeScript 文件并将字符串文本转换为国际化（i18n）调用的工具。它支持将中文字符串替换为 `i18next.t` 调用，并生成一个包含翻译键和中文的输出文件。
 
+扫描前:
+
+```typescript
+import React from 'react'
+import { Card, message } from 'antd'
+import { BasicPageWrapper } from '@/components'
+
+const App: React.FC = () => {
+  const year = '2024'
+  const month = '11'
+  const day = '12'
+
+  const str = `今天是${year}年${month}月${day}日`
+  const text = '你好'
+
+  const handleClick = () => {
+    message.info('早上好')
+  }
+
+  return (
+    <BasicPageWrapper title={'标题'} desc='描述'>
+      <Card onClick={handleClick}>{str}</Card>
+      <Card>仪表盘</Card>
+    </BasicPageWrapper>
+  )
+}
+export default App
+```
+
+扫描后：
+
+```typescript
+import i18next from '@/i18n'
+import React from 'react'
+import { Card, message } from 'antd'
+import { BasicPageWrapper } from '@/components'
+
+const App: React.FC = () => {
+  const year = '2024'
+  const month = '11'
+  const day = '12'
+
+  const str = i18next.t('prefix.594cec45' /* 今天是{{year}}年{{month}}月{{day}}日 */, { year, month, day })
+  const text = i18next.t('prefix.7a4e7e47' /* 你好 */)
+
+  const handleClick = () => {
+    message.info(i18next.t('prefix.770d4127' /* 早上好 */))
+  }
+
+  return (
+    <BasicPageWrapper title={i18next.t('prefix.825dcb9e' /* 标题 */)} desc={i18next.t('prefix.c1ecbf16' /* 描述 */)}>
+      <Card onClick={handleClick}>{str}</Card>
+      <Card>{i18next.t('prefix.c253eadc' /* 仪表盘 */)}</Card>
+    </BasicPageWrapper>
+  )
+}
+export default App
+```
+
 #### 功能
 
 1. **扫描和处理文件**：自动识别 JavaScript/TypeScript 文件中的字符串，转换为 i18n 调用。
